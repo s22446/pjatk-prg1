@@ -2,6 +2,6 @@
 
 class Diagnostics {
     public: 
+        // Class constructor
         Diagnostics();
-        ~Diagnostics();
 };

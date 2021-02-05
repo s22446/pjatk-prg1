@@ -1,10 +1,6 @@
-#include <iostream>
 #include "Diagnostics.h"
+#include <iostream>
 
-Diagnostics::Diagnostics(){
-
-}
-
-Diagnostics::~Diagnostics(){
+Diagnostics::Diagnostics() {
 
 }

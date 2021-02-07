@@ -12,6 +12,9 @@ class Diagnostics {
         void ShowDiagnosticsData();
 
     private:
+        // Printing diagnostics data method
+        void PrintDiagnosticsData();
+
         // Getting CPU data method
         std::string GetCPUData();
 
@@ -23,6 +26,9 @@ class Diagnostics {
 
         // Sum splitted cpu jiffies
         int CpuJiffiesSum(std::string str, int mode);
+
+        // Method for checking if user pressed b key
+        static void* userInput_thread(void*);
 
         // Private fields
 

@@ -9,6 +9,10 @@
 #include <math.h>
 #include <sstream>
 #include <iomanip>
+#include <time.h>
+#include <pthread.h>
+
+static volatile bool keep_running = true;
 
 // Diagnostics class constructor
 Diagnostics::Diagnostics(int refresh_rate) {
@@ -17,15 +21,45 @@ Diagnostics::Diagnostics(int refresh_rate) {
 
 // Main Diagnostics method for showing diagnostics data
 void Diagnostics::ShowDiagnosticsData() {
+    // Starting timer for checking if refresh needed
+    time_t start = time(0);
+    Diagnostics::PrintDiagnosticsData();
+    // Creating another thread to listen for b key
+    pthread_t tId;
+    (void) pthread_create(&tId, 0, Diagnostics::userInput_thread, 0);
     // Infinite diagnostics loop
     for (;;) {
-        // Diagnostics change visual content
-        std::system("clear");
-        std::cout << "Zużycie procesora: " << Diagnostics::GetCPUData() << std::endl;
+        if (double seconds_since_start = difftime(time(0), start) >= Diagnostics::refresh_rate_from_menu) {
+            Diagnostics::PrintDiagnosticsData();
+            start = time(0);
+        }
 
-        // Sleep for refresh rate from settings
-        usleep(Diagnostics::refresh_rate_from_menu * 1000000);
+        if (!keep_running) {
+            (void) pthread_join(tId, NULL);
+            keep_running = true;
+            return;
+        }
     }
+}
+
+// Method for checking if user pressed b key
+void* Diagnostics::userInput_thread(void*)
+{
+    while(keep_running) {
+        if (std::cin.get() == 'b')
+        {
+            //! desired user input 'q' received
+            keep_running = false;
+        }
+    }
+}
+
+void Diagnostics::PrintDiagnosticsData() {
+    // Diagnostics change visual content
+    std::system("clear");
+    std::cout << "Dane procesora:" << std::endl;
+    std::cout << "Zużycie procesora: " << Diagnostics::GetCPUData() << std::endl;
+    std::cout << "Naciśnij b oraz potwierdź klawiszem enter, aby wrócić." << std::endl;
 }
 
 // Getting CPU data method

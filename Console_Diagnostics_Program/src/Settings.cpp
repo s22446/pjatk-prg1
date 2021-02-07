@@ -16,9 +16,9 @@ void Settings::ChangeRefreshRate() {
     for (;;) {
         // Settings change visual content
         std::system("clear");
-        std::cout << "Podaj częstotliwość odświeżania danych diagnostycznych." << std::endl;
+        std::cout << "Podaj częstotliwość odświeżania danych diagnostycznych.\nAktualna wartość: " << Settings::refresh_rate << " sekund" << std::endl;
         std::cout << "Zakres: 1 - 10 sekund" << std::endl;
-        std::cout << "Twoja zmiana: " << std::endl;
+        std::cout << "Twoja zmiana:" << std::endl;
         // Getting user's input
         if (Settings::is_first_loop) {
             std::cin.ignore();

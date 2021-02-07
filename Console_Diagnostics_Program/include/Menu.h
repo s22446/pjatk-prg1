@@ -1,4 +1,5 @@
-#include "Settings.h"
+#include "../include/Settings.h"
+#include "../include/Diagnostics.h"
 #include <iostream>
 
 class  Menu {
@@ -15,8 +16,10 @@ class  Menu {
 
     private:
         // Private fields
+        
         char user_input;
         char user_settings_input;
 
         Settings settings;
+        Diagnostics diagnostics;
 };

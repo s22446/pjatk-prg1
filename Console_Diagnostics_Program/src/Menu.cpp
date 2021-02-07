@@ -1,5 +1,4 @@
-#include "Menu.h"
-#include "Diagnostics.h"
+#include "../include/Menu.h"
 #include <iostream>
 #include <string>
 #include <unistd.h>
@@ -22,9 +21,11 @@ void Menu::StartMenu() {
         std::cout << "3. Wyjdź" << std::endl;
         // Getting user's menu choice
         std::cin >> Menu::user_input;
+        // Creating diagnostics object
+        Menu::diagnostics = Diagnostics(Menu::settings.refresh_rate);
         switch (Menu::user_input) {
             case '1':
-
+                Menu::diagnostics.ShowDiagnosticsData();
                 break;
             
             case '2':

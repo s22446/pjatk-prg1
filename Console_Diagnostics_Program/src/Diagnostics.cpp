@@ -2,6 +2,7 @@
 #include "sys/types.h"
 #include "sys/sysinfo.h"
 #include <iostream>
+#include <cstring>
 #include <cstdio>
 #include <memory>
 #include <stdexcept>
@@ -13,6 +14,7 @@
 #include <iomanip>
 #include <time.h>
 #include <pthread.h>
+#include <ncurses.h>
 
 static volatile bool keep_running = true;
 
@@ -24,22 +26,41 @@ Diagnostics::Diagnostics(int refresh_rate) {
 
 // Main Diagnostics method for showing diagnostics data
 void Diagnostics::ShowDiagnosticsData() {
+    // Creating ncurses screen
+    initscr();   
+    mvprintw(0, 0, Diagnostics::static_data_cpu.c_str());     
+    mvprintw(4, 0, ("Zużycie procesora: " + Diagnostics::GetCPUData() + " | Min: " + std::to_string(dataStorage["cpu_percent_min"]) + "% | Max: " + std::to_string(dataStorage["cpu_percent_max"]) + "%\n").c_str());
+    refresh();
+    mvprintw(5, 0, ("Liczba procesow: " + Diagnostics::GetCPUProcesses() + "\n").c_str());
+    refresh();
+    mvprintw(6, 0, (Diagnostics::GetMemoryData() + "\n").c_str());
+    refresh();
+    mvprintw(10, 0, "Nacisnij b oraz potwierdź klawiszem enter, aby wrocic.\n");
+    refresh();
     // Starting timer for checking if refresh needed
     time_t start = time(0);
-    Diagnostics::PrintDiagnosticsData();
     // Creating another thread to listen for b key
     pthread_t tId;
     (void) pthread_create(&tId, 0, Diagnostics::userInput_thread, 0);
     // Infinite diagnostics loop
     for (;;) {
         if (double seconds_since_start = difftime(time(0), start) >= Diagnostics::refresh_rate_from_menu) {
-            Diagnostics::PrintDiagnosticsData();
+            mvprintw(0, 0, Diagnostics::static_data_cpu.c_str());     
+            mvprintw(4, 0, ("Zużycie procesora: " + Diagnostics::GetCPUData() + " | Min: " + std::to_string(dataStorage["cpu_percent_min"]) + "% | Max: " + std::to_string(dataStorage["cpu_percent_max"]) + "%\n").c_str());
+            refresh();
+            mvprintw(5, 0, ("Liczba procesow: " + Diagnostics::GetCPUProcesses() + "\n").c_str());
+            refresh();
+            mvprintw(6, 0, (Diagnostics::GetMemoryData() + "\n").c_str());
+            refresh();
+            mvprintw(10, 0, "Nacisnij b oraz potwierdź klawiszem enter, aby wrocic.\n");
+            refresh();
             start = time(0);
         }
 
         if (!keep_running) {
             (void) pthread_join(tId, NULL);
             keep_running = true;
+            endwin();
             return;
         }
     }
@@ -57,16 +78,6 @@ void* Diagnostics::userInput_thread(void*)
     }
 }
 
-void Diagnostics::PrintDiagnosticsData() {
-    // Diagnostics change visual content
-    std::system("clear");
-    std::cout << Diagnostics::static_data_cpu;
-    std::cout << "Zużycie procesora: " << Diagnostics::GetCPUData() << " | Min: " << dataStorage["cpu_percent_min"] << "% | Max: " << dataStorage["cpu_percent_max"] << "%" << std::endl;
-    std::cout << "Liczba procesów: " << Diagnostics::GetCPUProcesses() << std::endl;
-    std::cout << Diagnostics::GetMemoryData();
-    std::cout << "Naciśnij b oraz potwierdź klawiszem enter, aby wrócić." << std::endl;
-}
-
 // Getting static CPU data method
 void Diagnostics::GetStaticCPUData() {
     std::string cpu_name = Diagnostics::GetCommandOutput("cat /proc/cpuinfo | grep -w 'model name' | cut -d' ' -f3-");
@@ -74,7 +85,7 @@ void Diagnostics::GetStaticCPUData() {
     std::string cpu_clock = Diagnostics::GetCommandOutput("cat /proc/cpuinfo | grep -w 'cpu MHz' | cut -d' ' -f3-");
     std::string cpu_l2cache = Diagnostics::GetCommandOutput("cat /proc/cpuinfo | grep -w 'cache size' | cut -d' ' -f3-");
 
-    Diagnostics::static_data_cpu = "Nazwa procesora: " + cpu_name + "Liczba rdzeni: " + cpu_cores + "Taktowanie procesora w MHz: " + cpu_clock + "Pamięć cache L2: " + cpu_l2cache;
+    Diagnostics::static_data_cpu = "Nazwa procesora: " + cpu_name + "Liczba rdzeni: " + cpu_cores + "Taktowanie procesora w MHz: " + cpu_clock + "Cache L2: " + cpu_l2cache;
 }
 
 // Getting CPU processes method
@@ -97,28 +108,26 @@ std::string Diagnostics::GetCPUData() {
 
     double work_over_period = result2_work_jiffies - result1_work_jiffies;
     double total_over_period = result2_jiffies - result1_jiffies;
-    double percent_cpu = round(work_over_period / total_over_period * 100 * 10) / 10;
+    double percent_cpu = round(work_over_period / total_over_period * 100);
+    int percent_cpu_int = (int)percent_cpu;
 
-    std::stringstream stream;
-    stream << std::fixed << std::setprecision(1) << percent_cpu;
-
-    std::string cpu_percent = stream.str() + "%";
+    std::string cpu_percent = std::to_string(percent_cpu_int) + "%";
 
     if (dataStorage.find("cpu_percent_max") == dataStorage.end()) {
-        dataStorage["cpu_percent_max"] = stod(cpu_percent);
+        dataStorage["cpu_percent_max"] = percent_cpu_int;
     }
     else {
-        if (dataStorage["cpu_percent_max"] < stod(cpu_percent)) {
-            dataStorage["cpu_percent_max"] = stod(cpu_percent);
+        if (dataStorage["cpu_percent_max"] < percent_cpu_int) {
+            dataStorage["cpu_percent_max"] = percent_cpu_int;
         }
     }
 
     if (dataStorage.find("cpu_percent_min") == dataStorage.end()) {
-        dataStorage["cpu_percent_min"] = stod(cpu_percent);
+        dataStorage["cpu_percent_min"] = percent_cpu_int;
     }
     else {
-        if (dataStorage["cpu_percent_min"] > stod(cpu_percent)) {
-            dataStorage["cpu_percent_min"] = stod(cpu_percent);
+        if (dataStorage["cpu_percent_min"] > percent_cpu_int) {
+            dataStorage["cpu_percent_min"] = percent_cpu_int;
         }
     }
 
@@ -162,37 +171,29 @@ std::string Diagnostics::GetMemoryData() {
     sysinfo (&memInfo);
 
     // Total RAM
-    double totalPhysMem = memInfo.totalram;
+    long long totalPhysMem = memInfo.totalram;
     totalPhysMem *= memInfo.mem_unit;
-    double totalPhysMemMB = round(totalPhysMem / 1024 / 1024 * 10) / 10;
+    double totalPhysMemMB = round(totalPhysMem / 1024 / 1024);
     // Creating string with total RAM
-    std::stringstream stream;
-    stream << std::fixed << std::setprecision(0) << totalPhysMemMB;
-    std::string totalPhysMemMB_string = stream.str();
+    std::string totalPhysMemMB_string = std::to_string((int)totalPhysMemMB);
     
     // RAM used
-    double physMemUsed = memInfo.totalram - memInfo.freeram;
+    long long physMemUsed = memInfo.totalram - memInfo.freeram;
     physMemUsed *= memInfo.mem_unit;
-    double physMemUsedMB = round(physMemUsed / 1024 / 1024 * 10) / 10;
+    double physMemUsedMB = round(physMemUsed / 1024 / 1024);
     // Creating string with RAM used
-    std::stringstream stream2;
-    stream2 << std::fixed << std::setprecision(0) << physMemUsedMB;
-    std::string physMemUsedMB_string = stream2.str();
+    std::string physMemUsedMB_string = std::to_string((int)physMemUsedMB);
 
     // Percentage use
-    double RAM_percentage_use = round(stod(physMemUsedMB_string) / stod(totalPhysMemMB_string) * 100 * 10) / 10;
+    double RAM_percentage_use = round(physMemUsedMB / totalPhysMemMB * 100);
     // Creating string with RAM used
-    std::stringstream stream3;
-    stream3 << std::fixed << std::setprecision(1) << RAM_percentage_use;
-    std::string RAM_percentage_use_string = stream3.str();
+    std::string RAM_percentage_use_string = std::to_string((int)RAM_percentage_use);
 
     // Percentage free
-    double RAM_percentage_free = 100 - stod(RAM_percentage_use_string);
-    std::stringstream stream4;
-    stream4 << std::fixed << std::setprecision(1) << RAM_percentage_free;
-    std::string RAM_percentage_free_string = stream4.str();
+    int RAM_percentage_free = 100 - (int)RAM_percentage_use;
+    std::string RAM_percentage_free_string = std::to_string(RAM_percentage_free);
 
-    return "Ilość pamięci RAM: " + totalPhysMemMB_string + " MB\nIlość pamięci RAM w użyciu: " + physMemUsedMB_string + "MB\nProcent użytej pamięci RAM: " + RAM_percentage_use_string + "%\nProcent wolnej pamięci RAM: " + RAM_percentage_free_string + "%\n";
+    return "Ilosc pamieci RAM: " + totalPhysMemMB_string + " MB\nIlosc pamieci RAM w użyciu: " + physMemUsedMB_string + "MB\nProcent użytej pamieci RAM: " + RAM_percentage_use_string + "%\nProcent wolnej pamieci RAM: " + RAM_percentage_free_string + "%\n";
 }
 
 // Getting terminal commands output method

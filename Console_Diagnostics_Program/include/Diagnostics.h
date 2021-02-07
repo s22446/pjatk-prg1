@@ -46,7 +46,7 @@ class Diagnostics {
 
         // Diagnostics data storage
 
-        std::map <std::string, double> dataStorage;
+        std::map <std::string, int> dataStorage;
 
         std::string static_data_cpu;
 };

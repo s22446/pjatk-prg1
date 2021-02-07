@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <map>
 
 class Diagnostics {
     public: 
@@ -15,8 +16,17 @@ class Diagnostics {
         // Printing diagnostics data method
         void PrintDiagnosticsData();
 
+        // Getting static CPU data method
+        void GetStaticCPUData();
+
         // Getting CPU data method
         std::string GetCPUData();
+
+        // Getting CPU processes method
+        std::string GetCPUProcesses();
+
+        // Getting memory data method
+        std::string GetMemoryData();
 
         // Getting terminal commands output method
         std::string GetCommandOutput(const char* cmd);
@@ -33,4 +43,10 @@ class Diagnostics {
         // Private fields
 
         int refresh_rate_from_menu;
+
+        // Diagnostics data storage
+
+        std::map <std::string, double> dataStorage;
+
+        std::string static_data_cpu;
 };

@@ -67,7 +67,7 @@ void Menu::SettingsMenu() {
                 return;
             
             default:
-                std::cout << "Proszę wybrać prawidłową opcję! Wznawianie za 2 sekundy...";
+                std::cout << "Proszę wybrać prawidłową opcję! Wznawianie za 2 sekundy..." << std::endl;
                 usleep(2 * Menu::settings.sleep_time);
         }
     }

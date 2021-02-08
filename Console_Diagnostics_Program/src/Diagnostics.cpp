@@ -27,16 +27,91 @@ Diagnostics::Diagnostics(int refresh_rate) {
 // Main Diagnostics method for showing diagnostics data
 void Diagnostics::ShowDiagnosticsData() {
     // Creating ncurses screen
-    initscr();   
-    mvprintw(0, 0, Diagnostics::static_data_cpu.c_str());     
-    mvprintw(4, 0, ("Zużycie procesora: " + Diagnostics::GetCPUData() + " | Min: " + std::to_string(dataStorage["cpu_percent_min"]) + "% | Max: " + std::to_string(dataStorage["cpu_percent_max"]) + "%\n").c_str());
-    refresh();
-    mvprintw(5, 0, ("Liczba procesow: " + Diagnostics::GetCPUProcesses() + "\n").c_str());
-    refresh();
-    mvprintw(6, 0, (Diagnostics::GetMemoryData() + "\n").c_str());
-    refresh();
-    mvprintw(10, 0, "Nacisnij b oraz potwierdź klawiszem enter, aby wrocic.\n");
-    refresh();
+    initscr();
+    // Creating windows for our data
+    // Static data window
+    WINDOW * static_data = newwin(4, 200, 0, 0);
+    wprintw(static_data, Diagnostics::static_data_cpu.c_str());
+    wrefresh(static_data);
+    // Cpu usage window
+    std::string cpu_usage_str = "Zużycie procesora:";
+    WINDOW * cpu_usage_text = newwin(1, (cpu_usage_str.length() + 1), 4, 0);
+    wprintw(cpu_usage_text, cpu_usage_str.c_str());
+    wrefresh(cpu_usage_text);
+
+    WINDOW * cpu_usage_value = newwin(1, 10, 4, (cpu_usage_str.length() + 1));
+    wprintw(cpu_usage_value, (Diagnostics::GetCPUData() + "%").c_str());
+    wrefresh(cpu_usage_value);
+    // Min cpu usage window
+    std::string cpu_min_usage_str = "Minimalne zużycie procesora:";
+    WINDOW * cpu_min_usage_text = newwin(1, cpu_min_usage_str.length(), 5, 0);
+    wprintw(cpu_min_usage_text, cpu_min_usage_str.c_str());
+    wrefresh(cpu_min_usage_text);
+
+    WINDOW * cpu_min_usage_value = newwin(1, 10, 5, (cpu_min_usage_str.length() + 1));
+    wprintw(cpu_min_usage_value, (std::to_string(dataStorage["cpu_percent_min"]) + "%%").c_str());
+    wrefresh(cpu_min_usage_value);
+    // Max cpu usage window
+    std::string cpu_max_usage_str = "Maksymalne zużycie procesora:";
+    WINDOW * cpu_max_usage_text = newwin(1, cpu_max_usage_str.length(), 6, 0);
+    wprintw(cpu_max_usage_text, cpu_max_usage_str.c_str());
+    wrefresh(cpu_max_usage_text);
+
+    WINDOW * cpu_max_usage_value = newwin(1, 10, 6, (cpu_max_usage_str.length() + 1));
+    wprintw(cpu_max_usage_value, (std::to_string(dataStorage["cpu_percent_max"]) + "%%").c_str());
+    wrefresh(cpu_max_usage_value);
+    // Processes window
+    std::string processes_str = "Liczba procesow:";
+    WINDOW * processes_text = newwin(1, processes_str.length(), 7, 0);
+    wprintw(processes_text, processes_str.c_str());
+    wrefresh(processes_text);
+
+    WINDOW * processes_value = newwin(1, 15, 7, (processes_str.length() + 1));
+    wprintw(processes_value, Diagnostics::GetCPUProcesses().c_str());
+    wrefresh(processes_value);
+    // Getting memory data
+    Diagnostics::GetMemoryData();
+    // Total memory window
+    std::string total_ram_str = "Ilosc pamieci RAM:";
+    WINDOW * total_ram_text = newwin(1, total_ram_str.length(), 8, 0);
+    wprintw(total_ram_text, total_ram_str.c_str());
+    wrefresh(total_ram_text);
+
+    WINDOW * total_ram_value = newwin(1, 15, 8, (total_ram_str.length() + 1));
+    wprintw(total_ram_value, Diagnostics::total_ram.c_str());
+    wrefresh(total_ram_value);
+    // Memory used window
+    std::string ram_used_str = "Ilosc pamieci RAM w użyciu:";
+    WINDOW * ram_used_text = newwin(1, ram_used_str.length(), 9, 0);
+    wprintw(ram_used_text, ram_used_str.c_str());
+    wrefresh(ram_used_text);
+
+    WINDOW * ram_used_value = newwin(1, 15, 9, (ram_used_str.length() + 1));
+    wprintw(ram_used_value, Diagnostics::ram_used.c_str());
+    wrefresh(ram_used_value);
+    // Percent memory used window
+    std::string percent_ram_used_str = "Procent użytej pamieci RAM:";
+    WINDOW * percent_ram_used_text = newwin(1, percent_ram_used_str.length(), 10, 0);
+    wprintw(percent_ram_used_text, percent_ram_used_str.c_str());
+    wrefresh(percent_ram_used_text);
+
+    WINDOW * percent_ram_used_value = newwin(1, 3, 10, (percent_ram_used_str.length() + 1));
+    wprintw(percent_ram_used_value, Diagnostics::percent_ram_used.c_str());
+    wrefresh(percent_ram_used_value);
+    // Percent memory free window
+    std::string percent_ram_free_str = "Procent wolnej pamieci RAM:";
+    WINDOW * percent_ram_free_text = newwin(1, percent_ram_free_str.length(), 11, 0);
+    wprintw(percent_ram_free_text, percent_ram_free_str.c_str());
+    wrefresh(percent_ram_free_text);
+    
+    WINDOW * percent_ram_free_value = newwin(1, 3, 11, (percent_ram_free_str.length() + 1));
+    wprintw(percent_ram_free_value, Diagnostics::percent_ram_free.c_str());
+    wrefresh(percent_ram_free_value);
+    // Back key window
+    std::string back_str = "Nacisnij b oraz potwierdź klawiszem enter, aby wrocic.\n";
+    WINDOW * back_text = newwin(1, back_str.length(), 12, 0);
+    wprintw(back_text, back_str.c_str());
+    wrefresh(back_text);
     // Starting timer for checking if refresh needed
     time_t start = time(0);
     // Creating another thread to listen for b key
@@ -45,21 +120,54 @@ void Diagnostics::ShowDiagnosticsData() {
     // Infinite diagnostics loop
     for (;;) {
         if (double seconds_since_start = difftime(time(0), start) >= Diagnostics::refresh_rate_from_menu) {
-            mvprintw(0, 0, Diagnostics::static_data_cpu.c_str());     
-            mvprintw(4, 0, ("Zużycie procesora: " + Diagnostics::GetCPUData() + " | Min: " + std::to_string(dataStorage["cpu_percent_min"]) + "% | Max: " + std::to_string(dataStorage["cpu_percent_max"]) + "%\n").c_str());
-            refresh();
-            mvprintw(5, 0, ("Liczba procesow: " + Diagnostics::GetCPUProcesses() + "\n").c_str());
-            refresh();
-            mvprintw(6, 0, (Diagnostics::GetMemoryData() + "\n").c_str());
-            refresh();
-            mvprintw(10, 0, "Nacisnij b oraz potwierdź klawiszem enter, aby wrocic.\n");
-            refresh();
+            // Cleaning and filling windows with data again
+
+            // Cpu usage
+            wclear(cpu_usage_value);
+            wprintw(cpu_usage_value, (Diagnostics::GetCPUData() + "%").c_str());
+            wrefresh(cpu_usage_value);
+
+            // Min cpu usage
+            wclear(cpu_min_usage_value);
+            wprintw(cpu_min_usage_value, (std::to_string(dataStorage["cpu_percent_min"]) + "%%").c_str());
+            wrefresh(cpu_min_usage_value);
+
+            // Max cpu usage
+            wclear(cpu_max_usage_value);
+            wprintw(cpu_max_usage_value, (std::to_string(dataStorage["cpu_percent_max"]) + "%%").c_str());
+            wrefresh(cpu_max_usage_value);
+
+            // Processes
+            wclear(processes_value);
+            wprintw(processes_value, Diagnostics::GetCPUProcesses().c_str());
+            wrefresh(processes_value);
+
+            // Getting memory data
+            Diagnostics::GetMemoryData();
+
+            // Memory used  
+            wclear(ram_used_value);
+            wprintw(ram_used_value, Diagnostics::ram_used.c_str());
+            wrefresh(ram_used_value);
+
+            // Percent memory
+            wclear(percent_ram_used_value);
+            wprintw(percent_ram_used_value, Diagnostics::percent_ram_used.c_str());
+            wrefresh(percent_ram_used_value);
+
+            // Percent memory free
+            wclear(percent_ram_free_value);
+            wprintw(percent_ram_free_value, Diagnostics::percent_ram_free.c_str());
+            wrefresh(percent_ram_free_value);
+            // Reseting timer
             start = time(0);
         }
 
         if (!keep_running) {
+            // Suspending timer thread
             (void) pthread_join(tId, NULL);
             keep_running = true;
+            // Closing ncurses
             endwin();
             return;
         }
@@ -111,7 +219,7 @@ std::string Diagnostics::GetCPUData() {
     double percent_cpu = round(work_over_period / total_over_period * 100);
     int percent_cpu_int = (int)percent_cpu;
 
-    std::string cpu_percent = std::to_string(percent_cpu_int) + "%";
+    std::string cpu_percent = std::to_string(percent_cpu_int) + "%%";
 
     if (dataStorage.find("cpu_percent_max") == dataStorage.end()) {
         dataStorage["cpu_percent_max"] = percent_cpu_int;
@@ -165,7 +273,7 @@ int Diagnostics::CpuJiffiesSum(std::string str, int mode) {
 }
 
 // Getting memory data method
-std::string Diagnostics::GetMemoryData() {
+void Diagnostics::GetMemoryData() {
     struct sysinfo memInfo;
 
     sysinfo (&memInfo);
@@ -193,7 +301,10 @@ std::string Diagnostics::GetMemoryData() {
     int RAM_percentage_free = 100 - (int)RAM_percentage_use;
     std::string RAM_percentage_free_string = std::to_string(RAM_percentage_free);
 
-    return "Ilosc pamieci RAM: " + totalPhysMemMB_string + " MB\nIlosc pamieci RAM w użyciu: " + physMemUsedMB_string + "MB\nProcent użytej pamieci RAM: " + RAM_percentage_use_string + "%\nProcent wolnej pamieci RAM: " + RAM_percentage_free_string + "%\n";
+    Diagnostics::total_ram = totalPhysMemMB_string + " MB";
+    Diagnostics::ram_used = physMemUsedMB_string + " MB";
+    Diagnostics::percent_ram_used = RAM_percentage_use_string + "%%";
+    Diagnostics::percent_ram_free = RAM_percentage_free_string + "%%";
 }
 
 // Getting terminal commands output method

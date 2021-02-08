@@ -26,7 +26,7 @@ class Diagnostics {
         std::string GetCPUProcesses();
 
         // Getting memory data method
-        std::string GetMemoryData();
+        void GetMemoryData();
 
         // Getting terminal commands output method
         std::string GetCommandOutput(const char* cmd);
@@ -49,4 +49,12 @@ class Diagnostics {
         std::map <std::string, int> dataStorage;
 
         std::string static_data_cpu;
+
+        std::string total_ram;
+
+        std::string ram_used;
+
+        std::string percent_ram_used;
+
+        std::string percent_ram_free;
 };

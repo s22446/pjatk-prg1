@@ -22,16 +22,14 @@ void Menu::StartMenu() {
         // Getting user's menu choice
         std::cin >> Menu::user_input;
         // Creating diagnostics object
-        Menu::diagnostics = Diagnostics(Menu::settings.refresh_rate);
+        Menu::diagnostics = Diagnostics(Menu::settings.refresh_rate, Menu::settings.memory_format, Menu::settings.decimal_places);
         switch (Menu::user_input) {
             case '1':
                 Menu::diagnostics.ShowDiagnosticsData();
                 break;
-            
             case '2':
                 Menu::SettingsMenu();
                 break;
-
             case '3':
                 exit(1);
                 break;
@@ -52,6 +50,8 @@ void Menu::SettingsMenu() {
         std::cout << "Ustawienia:" << std::endl;
         std::cout << "Wciśnij klawisz aby zmienić ustawienie przy danej cyfrze:" << std::endl;
         std::cout << "1. Częstotliwość odświeżania danych diagnostycznych" << std::endl;
+        std::cout << "2. Format wyświetlania pamięci RAM" << std::endl;
+        std::cout << "3. Dokładność miejsc po przecinku" << std::endl;
         std::cout << "Naciśnij b, aby wrócić." << std::endl;
         // Getting user's settings choice
         std::cin >> Menu::user_settings_input;
@@ -60,6 +60,12 @@ void Menu::SettingsMenu() {
         {
             case '1':
                 Menu::settings.ChangeRefreshRate();
+                break;
+            case '2':
+                Menu::settings.ChangeMemoryFormat();
+                break;
+            case '3':
+                Menu::settings.ChangeDecimalPlaces();
                 break;
 
             case 'B':

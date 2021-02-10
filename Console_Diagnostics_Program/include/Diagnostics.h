@@ -5,7 +5,7 @@
 class Diagnostics {
     public: 
         // Class constructor
-        Diagnostics(int refresh_rate = 5);
+        Diagnostics(int refresh_rate = 5, int memory_format = 2, int decimal_places = 0);
 
         // Diagnostics methods declarations
 
@@ -43,10 +43,12 @@ class Diagnostics {
         // Private fields
 
         int refresh_rate_from_menu;
+        int memory_format_from_menu;
+        int decimal_places_from_menu;
 
         // Diagnostics data storage
 
-        std::map <std::string, int> dataStorage;
+        std::map <std::string, double> dataStorage;
 
         std::string static_data_cpu;
 
@@ -54,7 +56,7 @@ class Diagnostics {
 
         std::string ram_used;
 
-        std::string percent_ram_used;
+        double percent_ram_used;
 
-        std::string percent_ram_free;
+        double percent_ram_free;
 };

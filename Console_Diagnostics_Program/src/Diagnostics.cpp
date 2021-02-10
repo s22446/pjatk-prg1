@@ -19,8 +19,10 @@
 static volatile bool keep_running = true;
 
 // Diagnostics class constructor
-Diagnostics::Diagnostics(int refresh_rate) {
+Diagnostics::Diagnostics(int refresh_rate, int memory_format, int decimal_places) {
     Diagnostics::refresh_rate_from_menu = refresh_rate;
+    Diagnostics::memory_format_from_menu = memory_format;
+    Diagnostics::decimal_places_from_menu = decimal_places;
     Diagnostics::GetStaticCPUData();
 }
 
@@ -40,7 +42,15 @@ void Diagnostics::ShowDiagnosticsData() {
     wrefresh(cpu_usage_text);
 
     WINDOW * cpu_usage_value = newwin(1, 10, 4, (cpu_usage_str.length() + 1));
-    wprintw(cpu_usage_value, (Diagnostics::GetCPUData() + "%").c_str());
+    if (Diagnostics::decimal_places_from_menu == 0) {
+        wprintw(cpu_usage_value, "%.0f%%", stod(Diagnostics::GetCPUData()));
+    }
+    else if (Diagnostics::decimal_places_from_menu == 1) {
+        wprintw(cpu_usage_value, "%.1f%%", stod(Diagnostics::GetCPUData()));
+    }
+    else if (Diagnostics::decimal_places_from_menu == 2) {
+        wprintw(cpu_usage_value, "%.2f%%", stod(Diagnostics::GetCPUData()));
+    }
     wrefresh(cpu_usage_value);
     // Min cpu usage window
     std::string cpu_min_usage_str = "Minimalne zużycie procesora:";
@@ -49,7 +59,15 @@ void Diagnostics::ShowDiagnosticsData() {
     wrefresh(cpu_min_usage_text);
 
     WINDOW * cpu_min_usage_value = newwin(1, 10, 5, (cpu_min_usage_str.length() + 1));
-    wprintw(cpu_min_usage_value, (std::to_string(dataStorage["cpu_percent_min"]) + "%%").c_str());
+    if (Diagnostics::decimal_places_from_menu == 0) {
+        wprintw(cpu_min_usage_value, "%.0f%%", dataStorage["cpu_percent_min"]);
+    }
+    else if (Diagnostics::decimal_places_from_menu == 1) {
+        wprintw(cpu_min_usage_value, "%.1f%%", dataStorage["cpu_percent_min"]);
+    }
+    else if (Diagnostics::decimal_places_from_menu == 2) {
+        wprintw(cpu_min_usage_value, "%.2f%%", dataStorage["cpu_percent_min"]);
+    }
     wrefresh(cpu_min_usage_value);
     // Max cpu usage window
     std::string cpu_max_usage_str = "Maksymalne zużycie procesora:";
@@ -58,7 +76,15 @@ void Diagnostics::ShowDiagnosticsData() {
     wrefresh(cpu_max_usage_text);
 
     WINDOW * cpu_max_usage_value = newwin(1, 10, 6, (cpu_max_usage_str.length() + 1));
-    wprintw(cpu_max_usage_value, (std::to_string(dataStorage["cpu_percent_max"]) + "%%").c_str());
+    if (Diagnostics::decimal_places_from_menu == 0) {
+        wprintw(cpu_max_usage_value, "%.0f%%", dataStorage["cpu_percent_max"]);
+    }
+    else if (Diagnostics::decimal_places_from_menu == 1) {
+        wprintw(cpu_max_usage_value, "%.1f%%", dataStorage["cpu_percent_max"]);
+    }
+    else if (Diagnostics::decimal_places_from_menu == 2) {
+        wprintw(cpu_max_usage_value, "%.2f%%", dataStorage["cpu_percent_max"]);
+    }
     wrefresh(cpu_max_usage_value);
     // Processes window
     std::string processes_str = "Liczba procesow:";
@@ -95,8 +121,16 @@ void Diagnostics::ShowDiagnosticsData() {
     wprintw(percent_ram_used_text, percent_ram_used_str.c_str());
     wrefresh(percent_ram_used_text);
 
-    WINDOW * percent_ram_used_value = newwin(1, 3, 10, (percent_ram_used_str.length() + 1));
-    wprintw(percent_ram_used_value, Diagnostics::percent_ram_used.c_str());
+    WINDOW * percent_ram_used_value = newwin(1, 10, 10, (percent_ram_used_str.length() + 1));
+    if (Diagnostics::decimal_places_from_menu == 0) {
+        wprintw(percent_ram_used_value, "%.0f%%", Diagnostics::percent_ram_used);
+    }
+    else if (Diagnostics::decimal_places_from_menu == 1) {
+        wprintw(percent_ram_used_value, "%.1f%%", Diagnostics::percent_ram_used);
+    }
+    else if (Diagnostics::decimal_places_from_menu == 2) {
+        wprintw(percent_ram_used_value, "%.2f%%", Diagnostics::percent_ram_used);
+    }
     wrefresh(percent_ram_used_value);
     // Percent memory free window
     std::string percent_ram_free_str = "Procent wolnej pamieci RAM:";
@@ -104,8 +138,16 @@ void Diagnostics::ShowDiagnosticsData() {
     wprintw(percent_ram_free_text, percent_ram_free_str.c_str());
     wrefresh(percent_ram_free_text);
     
-    WINDOW * percent_ram_free_value = newwin(1, 3, 11, (percent_ram_free_str.length() + 1));
-    wprintw(percent_ram_free_value, Diagnostics::percent_ram_free.c_str());
+    WINDOW * percent_ram_free_value = newwin(1, 10, 11, (percent_ram_free_str.length() + 1));
+    if (Diagnostics::decimal_places_from_menu == 0) {
+        wprintw(percent_ram_free_value, "%.0f%%", Diagnostics::percent_ram_free);
+    }
+    else if (Diagnostics::decimal_places_from_menu == 1) {
+        wprintw(percent_ram_free_value, "%.1f%%", Diagnostics::percent_ram_free);
+    }
+    else if (Diagnostics::decimal_places_from_menu == 2) {
+        wprintw(percent_ram_free_value, "%.2f%%", Diagnostics::percent_ram_free);
+    }
     wrefresh(percent_ram_free_value);
     // Back key window
     std::string back_str = "Nacisnij b oraz potwierdź klawiszem enter, aby wrocic.\n";
@@ -124,17 +166,41 @@ void Diagnostics::ShowDiagnosticsData() {
 
             // Cpu usage
             wclear(cpu_usage_value);
-            wprintw(cpu_usage_value, (Diagnostics::GetCPUData() + "%").c_str());
+            if (Diagnostics::decimal_places_from_menu == 0) {
+                wprintw(cpu_usage_value, "%.0f%%", stod(Diagnostics::GetCPUData()));
+            }
+            else if (Diagnostics::decimal_places_from_menu == 1) {
+                wprintw(cpu_usage_value, "%.1f%%", stod(Diagnostics::GetCPUData()));
+            }
+            else if (Diagnostics::decimal_places_from_menu == 2) {
+                wprintw(cpu_usage_value, "%.2f%%", stod(Diagnostics::GetCPUData()));
+            }
             wrefresh(cpu_usage_value);
 
             // Min cpu usage
             wclear(cpu_min_usage_value);
-            wprintw(cpu_min_usage_value, (std::to_string(dataStorage["cpu_percent_min"]) + "%%").c_str());
+            if (Diagnostics::decimal_places_from_menu == 0) {
+                wprintw(cpu_min_usage_value, "%.0f%%", dataStorage["cpu_percent_min"]);
+            }
+            else if (Diagnostics::decimal_places_from_menu == 1) {
+                wprintw(cpu_min_usage_value, "%.1f%%", dataStorage["cpu_percent_min"]);
+            }
+            else if (Diagnostics::decimal_places_from_menu == 2) {
+                wprintw(cpu_min_usage_value, "%.2f%%", dataStorage["cpu_percent_min"]);
+            }
             wrefresh(cpu_min_usage_value);
 
             // Max cpu usage
             wclear(cpu_max_usage_value);
-            wprintw(cpu_max_usage_value, (std::to_string(dataStorage["cpu_percent_max"]) + "%%").c_str());
+            if (Diagnostics::decimal_places_from_menu == 0) {
+                wprintw(cpu_max_usage_value, "%.0f%%", dataStorage["cpu_percent_max"]);
+            }
+            else if (Diagnostics::decimal_places_from_menu == 1) {
+                wprintw(cpu_max_usage_value, "%.1f%%", dataStorage["cpu_percent_max"]);
+            }
+            else if (Diagnostics::decimal_places_from_menu == 2) {
+                wprintw(cpu_max_usage_value, "%.2f%%", dataStorage["cpu_percent_max"]);
+            }
             wrefresh(cpu_max_usage_value);
 
             // Processes
@@ -152,12 +218,28 @@ void Diagnostics::ShowDiagnosticsData() {
 
             // Percent memory
             wclear(percent_ram_used_value);
-            wprintw(percent_ram_used_value, Diagnostics::percent_ram_used.c_str());
+            if (Diagnostics::decimal_places_from_menu == 0) {
+                wprintw(percent_ram_used_value, "%.0f%%", Diagnostics::percent_ram_used);
+            }
+            else if (Diagnostics::decimal_places_from_menu == 1) {
+                wprintw(percent_ram_used_value, "%.1f%%", Diagnostics::percent_ram_used);
+            }
+            else if (Diagnostics::decimal_places_from_menu == 2) {
+                wprintw(percent_ram_used_value, "%.2f%%", Diagnostics::percent_ram_used);
+            }
             wrefresh(percent_ram_used_value);
 
             // Percent memory free
             wclear(percent_ram_free_value);
-            wprintw(percent_ram_free_value, Diagnostics::percent_ram_free.c_str());
+            if (Diagnostics::decimal_places_from_menu == 0) {
+                wprintw(percent_ram_free_value, "%.0f%%", Diagnostics::percent_ram_free);
+            }
+            else if (Diagnostics::decimal_places_from_menu == 1) {
+                wprintw(percent_ram_free_value, "%.1f%%", Diagnostics::percent_ram_free);
+            }
+            else if (Diagnostics::decimal_places_from_menu == 2) {
+                wprintw(percent_ram_free_value, "%.2f%%", Diagnostics::percent_ram_free);
+            }
             wrefresh(percent_ram_free_value);
             // Reseting timer
             start = time(0);
@@ -216,8 +298,20 @@ std::string Diagnostics::GetCPUData() {
 
     double work_over_period = result2_work_jiffies - result1_work_jiffies;
     double total_over_period = result2_jiffies - result1_jiffies;
-    double percent_cpu = round(work_over_period / total_over_period * 100);
-    int percent_cpu_int = (int)percent_cpu;
+    double percent_cpu = 0;
+    double percent_cpu_int;
+    if (Diagnostics::decimal_places_from_menu == 0) {
+        percent_cpu = round(work_over_period / total_over_period * 100);
+        percent_cpu_int = (int)percent_cpu;
+    }
+    else if (Diagnostics::decimal_places_from_menu == 1) {
+        percent_cpu = round(work_over_period / total_over_period * 100 * 10) / 10;
+        percent_cpu_int = percent_cpu;
+    }
+    else if (Diagnostics::decimal_places_from_menu == 2) {
+        percent_cpu = round(work_over_period / total_over_period * 100 * 100) / 100;
+        percent_cpu_int = percent_cpu;
+    }
 
     std::string cpu_percent = std::to_string(percent_cpu_int) + "%%";
 
@@ -281,30 +375,73 @@ void Diagnostics::GetMemoryData() {
     // Total RAM
     long long totalPhysMem = memInfo.totalram;
     totalPhysMem *= memInfo.mem_unit;
-    double totalPhysMemMB = round(totalPhysMem / 1024 / 1024);
+    double totalPhysMemMB;
+    if (Diagnostics::memory_format_from_menu == 0) {
+        totalPhysMemMB = (double)totalPhysMem;
+    }
+    else if (Diagnostics::memory_format_from_menu == 1) {
+        totalPhysMemMB = round(totalPhysMem / 1024);
+    }
+    else if (Diagnostics::memory_format_from_menu == 2) {
+        totalPhysMemMB = round(totalPhysMem / 1024 / 1024);
+    }
     // Creating string with total RAM
-    std::string totalPhysMemMB_string = std::to_string((int)totalPhysMemMB);
+    std::string totalPhysMemMB_string = std::to_string((long long)totalPhysMemMB);
     
     // RAM used
     long long physMemUsed = memInfo.totalram - memInfo.freeram;
     physMemUsed *= memInfo.mem_unit;
-    double physMemUsedMB = round(physMemUsed / 1024 / 1024);
+    double physMemUsedMB;
+    if (Diagnostics::memory_format_from_menu == 0) {
+        physMemUsedMB = (double)physMemUsed;
+    }
+    else if (Diagnostics::memory_format_from_menu == 1) {
+        physMemUsedMB = round(physMemUsed / 1024);
+    }
+    else if (Diagnostics::memory_format_from_menu == 2) {
+        physMemUsedMB = round(physMemUsed / 1024 / 1024);
+    }
     // Creating string with RAM used
-    std::string physMemUsedMB_string = std::to_string((int)physMemUsedMB);
+    std::string physMemUsedMB_string = std::to_string((long long)physMemUsedMB);
 
     // Percentage use
-    double RAM_percentage_use = round(physMemUsedMB / totalPhysMemMB * 100);
-    // Creating string with RAM used
-    std::string RAM_percentage_use_string = std::to_string((int)RAM_percentage_use);
+    double RAM_percentage_use = 0;
+    if (Diagnostics::decimal_places_from_menu == 0) {
+        RAM_percentage_use = round((physMemUsedMB) / (totalPhysMemMB) * 100);
+    }
+    else if (Diagnostics::decimal_places_from_menu == 1) {
+        RAM_percentage_use = round((physMemUsedMB) / (totalPhysMemMB) * 100 * 10) / 10;
+    }
+    else if (Diagnostics::decimal_places_from_menu == 2) {
+        RAM_percentage_use = round((physMemUsedMB) / (totalPhysMemMB) * 100 * 100) / 100;
+    }
 
     // Percentage free
-    int RAM_percentage_free = 100 - (int)RAM_percentage_use;
-    std::string RAM_percentage_free_string = std::to_string(RAM_percentage_free);
+    double RAM_percentage_free = 0;
+    if (Diagnostics::decimal_places_from_menu == 0) {
+        RAM_percentage_free = round(100 - RAM_percentage_use);
+    }
+    else if (Diagnostics::decimal_places_from_menu == 1) {
+        RAM_percentage_free = round((100 - RAM_percentage_use) * 10) / 10;
+    }
+    else if (Diagnostics::decimal_places_from_menu == 2) {
+        RAM_percentage_free = round((100 - RAM_percentage_use) * 100) / 100;
+    }
 
-    Diagnostics::total_ram = totalPhysMemMB_string + " MB";
-    Diagnostics::ram_used = physMemUsedMB_string + " MB";
-    Diagnostics::percent_ram_used = RAM_percentage_use_string + "%%";
-    Diagnostics::percent_ram_free = RAM_percentage_free_string + "%%";
+    if (Diagnostics::memory_format_from_menu == 0) {
+        Diagnostics::total_ram = totalPhysMemMB_string + " B";
+        Diagnostics::ram_used = physMemUsedMB_string + " B";
+    }
+    else if (Diagnostics::memory_format_from_menu == 1) {
+        Diagnostics::total_ram = totalPhysMemMB_string + " KB";
+        Diagnostics::ram_used = physMemUsedMB_string + " KB";
+    }
+    else if (Diagnostics::memory_format_from_menu == 2) {
+        Diagnostics::total_ram = totalPhysMemMB_string + " MB";
+        Diagnostics::ram_used = physMemUsedMB_string + " MB";
+    }
+    Diagnostics::percent_ram_used = RAM_percentage_use;
+    Diagnostics::percent_ram_free = RAM_percentage_free;
 }
 
 // Getting terminal commands output method
